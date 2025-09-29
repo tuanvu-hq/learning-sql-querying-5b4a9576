@@ -1,0 +1,6 @@
+# PACKAGES
+/target
+/node_modules
+
+# SECRET
+.env

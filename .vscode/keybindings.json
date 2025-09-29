@@ -1,0 +1,42 @@
+// Place your key bindings in this file to override the defaults
+[
+  {
+    "key": "ctrl+oem_7",
+    "command": "sortLines.sortLines",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "f9",
+    "command": "-sortLines.sortLines",
+    "when": "editorTextFocus"
+  },
+  {
+    "key": "ctrl+oem_1",
+    "command": "editor.action.joinLines"
+  },
+  {
+    "key": "ctrl+oem_2 ctrl+oem_period",
+    "command": "workbench.action.toggleStatusbarVisibility"
+  },
+  {
+    "key": "ctrl+shift+oem_5",
+    "command": "workbench.action.createTerminalEditor"
+  },
+  {
+    "key": "ctrl+oem_2 ctrl+oem_comma",
+    "command": "workbench.action.toggleMenuBar"
+  },
+  {
+    "key": "ctrl+shift+alt+w",
+    "command": "workbench.action.closeWindow"
+  },
+  {
+    "key": "ctrl+shift+w",
+    "command": "-workbench.action.closeWindow"
+  },
+  {
+    "key": "gd",
+    "command": "editor.action.revealDefinition",
+    "when": "editorTextFocus && vim.active"
+  }
+]

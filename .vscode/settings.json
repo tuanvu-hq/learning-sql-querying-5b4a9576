@@ -1,0 +1,68 @@
+{
+  // # UNIVERSAL
+  "breadcrumbs.enabled": true,
+  // # EXPLORER
+  "explorer.openEditors.visible": 1,
+  "explorer.compactFolders": false,
+  // # WINDOW
+  "window.commandCenter": false,
+  // # FILES
+  "files.watcherExclude": {
+    "node_modules/**/*": true,
+    ".git/**/*": true,
+    "**/node_modules/**": true,
+    "**/.git/**": true,
+    "**/dist/**": true,
+    "**/.vscode/**": true
+  },
+  // # WORKBENCH
+  // "workbench.settings.editor": "json",
+  "workbench.statusBar.visible": false,
+  "workbench.activityBar.location": "bottom",
+  "workbench.editor.openPositioning": "left",
+  "workbench.layoutControl.enabled": false,
+  "workbench.panel.defaultLocation": "right",
+  "workbench.sideBar.location": "right",
+  "workbench.preferredLightColorTheme": "Default Dark Modern", // Nord Light (extension)
+  "workbench.preferredDarkColorTheme": "Default Dark Modern", // Theme (extension)
+  "workbench.iconTheme": "material-icon-theme", // Material Icon Theme (extension)
+  "workbench.colorCustomizations": {
+    "commandCenter.border": "#e7e7e799",
+    "sash.hoverBorder": "#2c2c3b",
+    "titleBar.activeBackground": "#16161e",
+    "titleBar.activeForeground": "#e7e7e7",
+    "titleBar.inactiveBackground": "#16161e99",
+    "titleBar.inactiveForeground": "#e7e7e799"
+  },
+  // # EDITOR
+  "editor.minimap.enabled": false,
+  "editor.defaultFormatter": "esbenp.prettier-vscode", // Prettier - Code formatter (extension)
+  "editor.fontFamily": "CaskaydiaMono Nerd Font",
+  "editor.formatOnSave": true,
+  "editor.formatOnPaste": true,
+  "editor.codeActionsOnSave": {
+    "source.organizeImports": "always",
+    "source.fixAll": "always"
+  },
+  "editor.codeLens": true,
+  "editor.cursorSmoothCaretAnimation": "on",
+  "editor.cursorBlinking": "phase",
+  // # TERMINAL
+  "terminal.integrated.fontFamily": "CaskaydiaMono Nerd Font",
+  "terminal.integrated.defaultProfile.windows": "Git Bash",
+  "terminal.integrated.defaultProfile.linux": "Git Bash",
+  // # EXTENSIONS
+  "extensions.experimental.affinity": {
+    "asvetliakov.vscode-neovim": 1
+  },
+  // # PRETTIER
+  "prettier.tabWidth": 2,
+  "prettier.semi": true,
+  "prettier.printWidth": 80,
+  "css.lint.unknownAtRules": "ignore", // [@custom-variant]
+  "[rust]": {
+    "editor.defaultFormatter": "rust-lang.rust-analyzer",
+    "editor.formatOnSave": true,
+    "editor.formatOnPaste": true
+  }
+}
