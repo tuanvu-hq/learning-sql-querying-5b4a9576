@@ -17,3 +17,7 @@ sea-orm-cli generate entity -o src/database
 ```bash
 docker-compose exec database psql -U postgres -d MyDatabase
 ```
+
+## Note
+
+- Last timestamp: 43:38

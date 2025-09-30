@@ -1,15 +1,18 @@
 [package]
-name = "learning-sqlx-sea-orm-5b4a9576"
+name = "learning-sql-querying-5b4a9576"
 version = "0.1.0"
 edition = "2024"
 
 [dependencies]
 chrono = "0.4.42"
+derive_more = { version = "2.0.1", features = ["from"] }
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
 polars = { version = "0.51.0", features = ["lazy", "dtype-categorical"] }
 sea-orm = { version = "1.1.16", features = ["runtime-tokio-rustls", "sqlx-postgres"] }
 serde = { version = "1.0.228", features = ["derive"] }
+serde_json = "1.0.145"
 serde_with = "3.14.1"
 sqlx = "0.8.6"
+thiserror = "2.0.17"
 tokio = { version = "1.47.1", features = ["full"] }

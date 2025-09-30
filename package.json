@@ -1,8 +1,43 @@
 {
+  "name": "learning-sql-querying-5b4a9576",
+  "version": "1.0.0",
+  "description": "- Add `FromRow` to generated models for `sqlx` compatibility.",
+  "main": "index.js",
+  "dependencies": {
+    "argparse": "^2.0.1",
+    "big-integer": "^1.6.52",
+    "commander": "^2.20.3",
+    "discontinuous-range": "^1.0.0",
+    "jinx-rust": "^0.1.6",
+    "jsox": "^1.2.123",
+    "moo": "^0.5.2",
+    "nearley": "^2.20.1",
+    "node-sql-parser": "^5.3.12",
+    "railroad-diagrams": "^1.0.0",
+    "randexp": "^0.4.6",
+    "ret": "^0.1.15",
+    "sql-formatter": "^15.6.9",
+    "tslib": "^2.8.1"
+  },
   "devDependencies": {
     "prettier": "^3.6.2",
     "prettier-plugin-rust": "^0.1.9",
     "prettier-plugin-sql": "^0.19.2",
     "prettier-plugin-toml": "^2.0.6"
-  }
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tuanvu-hq/learning-sql-querying-5b4a9576.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/tuanvu-hq/learning-sql-querying-5b4a9576/issues"
+  },
+  "homepage": "https://github.com/tuanvu-hq/learning-sql-querying-5b4a9576#readme"
 }

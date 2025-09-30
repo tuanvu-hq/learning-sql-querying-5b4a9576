@@ -1,24 +1,65 @@
+use std::collections::HashMap;
+
 use polars::prelude::*;
 use polars::{frame::DataFrame, series::Series};
-use sea_orm::{DatabaseConnection, EntityTrait};
-use sqlx::Pool;
+use sea_orm::{DatabaseConnection, EntityTrait, QuerySelect};
+use serde_json::Value;
+use sqlx::{Pool, Postgres, Row};
 
 use crate::common::connection::{get_db_sea_orm, get_db_sqlx};
 use crate::common::error::{AppError, AppResult};
 use crate::database::customers;
 
-async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<customers::Model>> {
-    customers::Entity::find()
+const DEBUG: bool = false;
+
+async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<HashMap<String, Value>>> {
+    let rows = customers::Entity::find()
+        .select_only()
+        .column(customers::Column::FirstName)
+        .column(customers::Column::Country)
+        .column(customers::Column::Score)
+        .into_json()
         .all(db)
         .await
-        .map_err(AppError::SeaOrm)
+        .map_err(AppError::SeaOrm)?;
+    let results = rows
+        .into_iter()
+        .map(|json| serde_json::from_value::<HashMap<String, Value>>(json).unwrap())
+        .collect();
+
+    if DEBUG {
+        println!("SEA ORM: ");
+        println!("{:#?}", results);
+    }
+
+    Ok(results)
 }
 
-async fn sqlx_query(db: &Pool<sqlx::Postgres>) -> AppResult<Vec<customers::Model>> {
-    sqlx::query_as::<_, customers::Model>("SELECT * FROM customers;")
+async fn sqlx_query(db: &Pool<Postgres>) -> AppResult<Vec<HashMap<String, Value>>> {
+    let rows = sqlx::query("SELECT first_name, country, score FROM customers")
         .fetch_all(db)
         .await
-        .map_err(AppError::Sqlx)
+        .map_err(AppError::Sqlx)?;
+    let results = rows
+        .into_iter()
+        .map(|row| {
+            let mut map = HashMap::new();
+            map.insert("first_name".to_string(), Value::String(row.get(0)));
+            map.insert("country".to_string(), Value::String(row.get(1)));
+            map.insert(
+                "score".to_string(),
+                Value::Number(row.get::<i32, _>(2).into()),
+            );
+            map
+        })
+        .collect();
+
+    if DEBUG {
+        println!("SQLX: ");
+        println!("{:#?}", results);
+    }
+
+    Ok(results)
 }
 
 async fn polars_df(db: &DatabaseConnection) -> AppResult<DataFrame> {
@@ -53,19 +94,18 @@ pub async fn display_table() -> AppResult<()> {
 
     let df = polars_df(&db_sea_orm)
         .await?
-        .clone()
         .lazy()
+        .select(&[col("first_name"), col("country"), col("score")])
         .collect()
         .map_err(AppError::Polars)?;
 
     let length = data_sea_orm.len() == data_sqlx.len();
     let comparison = data_sea_orm.iter().zip(data_sqlx.iter()).all(|(a, b)| {
-        let id = a.id == b.id;
-        let first_name = a.first_name == b.first_name;
-        let country = a.country == b.country;
-        let score = a.score == b.score;
+        let first_name = a.get("first_name") == b.get("first_name");
+        let country = a.get("country") == b.get("country");
+        let score = a.get("score") == b.get("score");
 
-        id && first_name && country && score
+        first_name && country && score
     });
 
     if length && comparison {
