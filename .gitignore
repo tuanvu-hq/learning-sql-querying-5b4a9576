@@ -4,3 +4,6 @@
 
 # SECRET
 .env
+
+# CUSTOM
+.vscode

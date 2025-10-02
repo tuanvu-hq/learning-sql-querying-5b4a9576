@@ -1,7 +1,6 @@
-#![allow(unused_variables)]
-
-use learning_sql_querying_5b4a9576::progress::p_003::display_table;
 use std::error::Error;
+
+use lib_progress::progress::p_006::display_table;
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {

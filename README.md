@@ -6,6 +6,13 @@
 
 ## Commands
 
+### Workspaces
+
+```bash
+cargo new crates/lib/lib-core --lib
+cargo new crates/lib/lib-heavy --lib
+```
+
 ### Setup
 
 ```bash

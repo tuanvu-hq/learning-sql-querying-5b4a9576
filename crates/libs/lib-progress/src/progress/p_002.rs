@@ -4,9 +4,15 @@ use polars::{frame::DataFrame, series::Series};
 use sea_orm::{DatabaseConnection, EntityTrait};
 use sqlx::Pool;
 
-use crate::common::connection::{get_db_sea_orm, get_db_sqlx};
-use crate::common::error::{AppError, AppResult};
-use crate::database::orders;
+use lib_core::connection::{get_db_sea_orm, get_db_sqlx};
+use lib_core::error::{AppError, AppResult};
+use lib_data::database::orders;
+
+/*
+# QUERY:
+
+SELECT * FROM orders;
+*/
 
 async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<orders::Model>> {
     orders::Entity::find()
@@ -16,7 +22,9 @@ async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<orders::Model>>
 }
 
 async fn sqlx_query(db: &Pool<sqlx::Postgres>) -> AppResult<Vec<orders::Model>> {
-    sqlx::query_as::<_, orders::Model>("SELECT * FROM orders;")
+    let query = "SELECT * FROM orders;";
+
+    sqlx::query_as::<_, orders::Model>(query)
         .fetch_all(db)
         .await
         .map_err(AppError::Sqlx)
@@ -70,7 +78,8 @@ pub async fn display_table() -> AppResult<()> {
     });
 
     if length && comparison {
-        println!("{}", df);
+        println!("POLARS: ");
+        println!("\n{}\n", df);
     }
 
     Ok(())

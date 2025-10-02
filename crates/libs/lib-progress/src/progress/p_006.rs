@@ -2,22 +2,27 @@ use std::collections::HashMap;
 
 use polars::prelude::*;
 use polars::{frame::DataFrame, series::Series};
-use sea_orm::{DatabaseConnection, EntityTrait, QuerySelect};
+use sea_orm::{DatabaseConnection, EntityTrait, QueryOrder};
 use serde_json::Value;
 use sqlx::{Pool, Postgres, Row};
 
-use crate::common::connection::{get_db_sea_orm, get_db_sqlx};
-use crate::common::error::{AppError, AppResult};
-use crate::database::customers;
+use lib_core::connection::{get_db_sea_orm, get_db_sqlx};
+use lib_core::error::{AppError, AppResult};
+use lib_data::database::customers;
+
+/*
+# QUERY:
+
+SELECT *
+FROM customers
+ORDER BY score DESC;
+*/
 
 const DEBUG: bool = false;
 
 async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<HashMap<String, Value>>> {
     let rows = customers::Entity::find()
-        .select_only()
-        .column(customers::Column::FirstName)
-        .column(customers::Column::Country)
-        .column(customers::Column::Score)
+        .order_by_desc(customers::Column::Score)
         .into_json()
         .all(db)
         .await
@@ -29,34 +34,40 @@ async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<HashMap<String,
 
     if DEBUG {
         println!("SEA ORM: ");
-        println!("{:#?}", results);
+        println!("\n{:#?}\n", results);
     }
 
     Ok(results)
 }
 
 async fn sqlx_query(db: &Pool<Postgres>) -> AppResult<Vec<HashMap<String, Value>>> {
-    let rows = sqlx::query("SELECT first_name, country, score FROM customers")
+    let query = "
+    SELECT *
+    FROM customers
+    ORDER BY score DESC;
+    ";
+    let rows = sqlx::query(query)
         .fetch_all(db)
         .await
         .map_err(AppError::Sqlx)?;
+    #[rustfmt::skip]
     let results = rows
         .into_iter()
         .map(|row| {
             let mut map = HashMap::new();
-            map.insert("first_name".to_string(), Value::String(row.get(0)));
-            map.insert("country".to_string(), Value::String(row.get(1)));
-            map.insert(
-                "score".to_string(),
-                Value::Number(row.get::<i32, _>(2).into()),
-            );
+            
+            map.insert("id".to_string(), Value::Number(row.get::<i32,_>(0).into()));
+            map.insert("first_name".to_string(), Value::String(row.get(1)));
+            map.insert("country".to_string(), Value::String(row.get(2)));
+            map.insert("score".to_string(), Value::Number(row.get::<i32, _>(3).into()));
+
             map
         })
         .collect();
 
     if DEBUG {
         println!("SQLX: ");
-        println!("{:#?}", results);
+        println!("\n{:#?}\n", results);
     }
 
     Ok(results)
@@ -95,21 +106,26 @@ pub async fn display_table() -> AppResult<()> {
     let df = polars_df(&db_sea_orm)
         .await?
         .lazy()
-        .select(&[col("first_name"), col("country"), col("score")])
+        .sort(
+            ["score"],
+            SortMultipleOptions::new().with_order_descending(true),
+        )
         .collect()
         .map_err(AppError::Polars)?;
 
     let length = data_sea_orm.len() == data_sqlx.len();
     let comparison = data_sea_orm.iter().zip(data_sqlx.iter()).all(|(a, b)| {
+        let id = a.get("id") == b.get("id");
         let first_name = a.get("first_name") == b.get("first_name");
         let country = a.get("country") == b.get("country");
         let score = a.get("score") == b.get("score");
 
-        first_name && country && score
+        id && first_name && country && score
     });
 
     if length && comparison {
-        println!("{}", df);
+        println!("POLARS: ");
+        println!("\n{}\n", df);
     }
 
     Ok(())
@@ -122,10 +138,10 @@ shape: (5, 4)
 │ --- ┆ ---        ┆ ---     ┆ ---   │
 │ i32 ┆ str        ┆ str     ┆ i32   │
 ╞═════╪════════════╪═════════╪═══════╡
-│ 1   ┆ Maria      ┆ Germany ┆ 350   │
 │ 2   ┆  John      ┆ USA     ┆ 900   │
 │ 3   ┆ Georg      ┆ UK      ┆ 750   │
 │ 4   ┆ Martin     ┆ Germany ┆ 500   │
+│ 1   ┆ Maria      ┆ Germany ┆ 350   │
 │ 5   ┆ Peter      ┆ USA     ┆ 0     │
 └─────┴────────────┴─────────┴───────┘
 */
