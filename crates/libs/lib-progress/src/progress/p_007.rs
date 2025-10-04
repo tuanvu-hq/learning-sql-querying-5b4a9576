@@ -1,5 +1,5 @@
 use polars::prelude::*;
-use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
+use sea_orm::{DatabaseConnection, EntityTrait, QueryOrder};
 use sqlx::{Pool, Postgres};
 
 use lib_core::error::{AppError, AppResult};
@@ -15,20 +15,21 @@ use crate::utils::debug::log_debug;
 
 SELECT *
 FROM customers
-WHERE score != 0;
+ORDER BY country ASC, score DESC;
 */
 
 /*
-shape: (4, 4)
+shape: (5, 4)
 ┌─────┬────────────┬─────────┬───────┐
 │ id  ┆ first_name ┆ country ┆ score │
 │ --- ┆ ---        ┆ ---     ┆ ---   │
 │ i32 ┆ str        ┆ str     ┆ i32   │
 ╞═════╪════════════╪═════════╪═══════╡
-│ 1   ┆ Maria      ┆ Germany ┆ 350   │
-│ 2   ┆  John      ┆ USA     ┆ 900   │
-│ 3   ┆ Georg      ┆ UK      ┆ 750   │
 │ 4   ┆ Martin     ┆ Germany ┆ 500   │
+│ 1   ┆ Maria      ┆ Germany ┆ 350   │
+│ 3   ┆ Georg      ┆ UK      ┆ 750   │
+│ 2   ┆  John      ┆ USA     ┆ 900   │
+│ 5   ┆ Peter      ┆ USA     ┆ 0     │
 └─────┴────────────┴─────────┴───────┘
 */
 
@@ -36,7 +37,8 @@ const DEBUG: bool = false;
 
 async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<customers::Model>> {
     let results = customers::Entity::find()
-        .filter(customers::Column::Score.ne(0))
+        .order_by_asc(customers::Column::Country)
+        .order_by_desc(customers::Column::Score)
         .all(db)
         .await
         .map_err(AppError::SeaOrm)?;
@@ -48,9 +50,9 @@ async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<customers::Mode
 
 async fn sqlx_query(db: &Pool<Postgres>) -> AppResult<Vec<customers::Model>> {
     let query = "
-    SELECT * FROM 
-    customers 
-    WHERE score != 0;
+    SELECT *
+    FROM customers
+    ORDER BY country ASC, score DESC;
     ";
     let results = sqlx::query_as::<_, customers::Model>(query)
         .fetch_all(db)
@@ -67,7 +69,10 @@ pub async fn display_table() -> AppResult<()> {
     let df = df_customers(&db_sea_orm)
         .await?
         .lazy()
-        .filter(col("score").neq(0))
+        .sort(
+            ["country", "score"],
+            SortMultipleOptions::new().with_order_descending_multi([false, true]),
+        )
         .collect()
         .map_err(AppError::Polars)?;
 

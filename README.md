@@ -9,14 +9,17 @@
 ### Workspaces
 
 ```bash
-cargo new crates/lib/lib-core --lib
-cargo new crates/lib/lib-heavy --lib
+cargo new crates/libs/lib-core --lib --vcs none
+cargo new crates/libs/lib-data --lib --vcs none
+cargo new crates/libs/lib-progress --lib --vcs none
 ```
 
 ### Setup
 
 ```bash
 sea-orm-cli generate entity -o src/database
+
+sea-orm-cli generate entity -o crates/libs/lib-data/database
 ```
 
 ### Docker

@@ -1,7 +1,6 @@
 use polars::prelude::*;
-use sea_orm::{
-    ColumnTrait, DatabaseConnection, EntityTrait, FromQueryResult, QueryFilter, QuerySelect,
-};
+use sea_orm::sea_query::Expr;
+use sea_orm::{DatabaseConnection, EntityTrait, FromQueryResult, QuerySelect};
 use sqlx::{FromRow, Pool, Postgres};
 
 use lib_core::error::{AppError, AppResult};
@@ -15,37 +14,40 @@ use crate::utils::debug::log_debug;
 /*
 # QUERY:
 
-SELECT first_name, country
+SELECT
+    country,
+    SUM(score) AS total_score
 FROM customers
-WHERE country = 'Germany';
+GROUP BY country;
 */
 
 /*
-shape: (2, 2)
-┌────────────┬─────────┐
-│ first_name ┆ country │
-│ ---        ┆ ---     │
-│ str        ┆ str     │
-╞════════════╪═════════╡
-│ Maria      ┆ Germany │
-│ Martin     ┆ Germany │
-└────────────┴─────────┘
+shape: (3, 2)
+┌─────────┬─────────────┐
+│ country ┆ total_score │
+│ ---     ┆ ---         │
+│ str     ┆ i32         │
+╞═════════╪═════════════╡
+│ USA     ┆ 900         │
+│ Germany ┆ 850         │
+│ UK      ┆ 750         │
+└─────────┴─────────────┘
 */
 
 const DEBUG: bool = false;
 
 #[derive(Clone, Debug, PartialEq, Eq, FromRow, FromQueryResult)]
 struct Customer {
-    first_name: String,
     country: Option<String>,
+    total_score: i64,
 }
 
 async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<Customer>> {
     let results = customers::Entity::find()
         .select_only()
-        .column(customers::Column::FirstName)
         .column(customers::Column::Country)
-        .filter(customers::Column::Country.eq("Germany"))
+        .column_as(Expr::cust("SUM(score)"), "total_score")
+        .group_by(customers::Column::Country)
         .into_model::<Customer>()
         .all(db)
         .await
@@ -58,9 +60,11 @@ async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<Customer>> {
 
 async fn sqlx_query(db: &Pool<Postgres>) -> AppResult<Vec<Customer>> {
     let query = "
-    SELECT first_name, country 
-    FROM customers 
-    WHERE country = 'Germany';
+    SELECT
+        country,
+        SUM(score) AS total_score
+    FROM customers
+    GROUP BY country;
     ";
     let results = sqlx::query_as::<_, Customer>(query)
         .fetch_all(db)
@@ -77,8 +81,8 @@ pub async fn display_table() -> AppResult<()> {
     let df = df_customers(&db_sea_orm)
         .await?
         .lazy()
-        .select([col("first_name"), col("country")])
-        .filter(col("country").eq(lit("Germany")))
+        .group_by(["country"])
+        .agg([col("score").sum().alias("total_score")])
         .collect()
         .map_err(AppError::Polars)?;
 
