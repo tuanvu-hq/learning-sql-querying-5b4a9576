@@ -23,3 +23,4 @@ lib-progress = { path = "crates/libs/lib-progress" }
 dotenvy = "0.15.7"
 dotenvy_macro = "0.15.7"
 tokio = { version = "1.47.1", features = ["full"] }
+uuid = { version = "1.18.1", features = ["v4"] }

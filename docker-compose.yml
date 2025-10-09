@@ -3,7 +3,7 @@ services:
     image: postgres:latest
     volumes:
       - db-data:/var/lib/postgresql/data
-      - ./docker/01-init.sql:/docker-entrypoint-initdb.d/init.sql
+      - ./docker/02-init.sql:/docker-entrypoint-initdb.d/init.sql
     environment:
       - POSTGRES_PASSWORD=keyboardcat
     ports:

@@ -5,10 +5,10 @@ use sqlx::{Pool, Postgres};
 use lib_core::error::{AppError, AppResult};
 use lib_data::database::customers;
 
-use crate::model::df_customers::df_customers;
 use crate::utils::compare::compare_vecs;
 use crate::utils::database::get_database;
 use crate::utils::debug::log_debug;
+use crate::utils::dataframe::get_df_customers;
 
 /*
 # QUERY:
@@ -67,9 +67,8 @@ async fn sqlx_query(db: &Pool<Postgres>) -> AppResult<Vec<customers::Model>> {
 
 pub async fn display_table() -> AppResult<()> {
     let (db_sea_orm, db_sqlx) = get_database().await?;
-    let df = df_customers(&db_sea_orm)
-        .await?
-        .lazy()
+    let df_customers = get_df_customers(&db_sea_orm).await?.lazy();
+    let df = df_customers
         .filter(col("country").eq(lit("USA")).or(col("score").gt(500)))
         .collect()
         .map_err(AppError::Polars)?;

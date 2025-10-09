@@ -4,7 +4,7 @@ use lib_data::database::orders;
 use polars::{frame::DataFrame, prelude::NamedFrom, series::Series};
 use sea_orm::{DatabaseConnection, EntityTrait};
 
-pub async fn df_orders(db: &DatabaseConnection) -> AppResult<DataFrame> {
+pub async fn get_df_orders(db: &DatabaseConnection) -> AppResult<DataFrame> {
     let data = orders::Entity::find()
         .all(db)
         .await

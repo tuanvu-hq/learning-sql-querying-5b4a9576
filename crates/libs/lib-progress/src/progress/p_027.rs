@@ -15,18 +15,20 @@ use crate::utils::debug::log_debug;
 
 SELECT *
 FROM customers
-WHERE score > 500;
+WHERE first_name LIKE '%__r%';
 */
 
 /*
-shape: (2, 4)
+shape: (4, 4)
 ┌─────┬────────────┬─────────┬───────┐
 │ id  ┆ first_name ┆ country ┆ score │
 │ --- ┆ ---        ┆ ---     ┆ ---   │
 │ i32 ┆ str        ┆ str     ┆ i32   │
 ╞═════╪════════════╪═════════╪═══════╡
-│ 2   ┆  John      ┆ USA     ┆ 900   │
+│ 1   ┆ Maria      ┆ Germany ┆ 350   │
 │ 3   ┆ Georg      ┆ UK      ┆ 750   │
+│ 4   ┆ Martin     ┆ Germany ┆ 500   │
+│ 5   ┆ Peter      ┆ USA     ┆ 0     │
 └─────┴────────────┴─────────┴───────┘
 */
 
@@ -34,7 +36,7 @@ const DEBUG: bool = false;
 
 async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<customers::Model>> {
     let results = customers::Entity::find()
-        .filter(customers::Column::Score.gt(500))
+        .filter(customers::Column::FirstName.like("%__r%"))
         .all(db)
         .await
         .map_err(AppError::SeaOrm)?;
@@ -48,7 +50,7 @@ async fn sqlx_query(db: &Pool<Postgres>) -> AppResult<Vec<customers::Model>> {
     let query = "
     SELECT *
     FROM customers
-    WHERE score > 500;
+    WHERE first_name LIKE '%__r%';
     ";
     let results = sqlx::query_as::<_, customers::Model>(query)
         .fetch_all(db)
@@ -64,7 +66,7 @@ pub async fn display_table() -> AppResult<()> {
     let (db_sea_orm, db_sqlx) = get_database().await?;
     let df_customers = get_df_customers(&db_sea_orm).await?.lazy();
     let df = df_customers
-        .filter(col("score").gt(500))
+        .filter(col("first_name").str().contains(lit("..r"), true))
         .collect()
         .map_err(AppError::Polars)?;
 

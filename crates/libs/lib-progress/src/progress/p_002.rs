@@ -5,9 +5,9 @@ use sqlx::Pool;
 use lib_core::error::{AppError, AppResult};
 use lib_data::database::orders;
 
-use crate::model::df_orders::df_orders;
 use crate::utils::compare::compare_vecs;
 use crate::utils::database::get_database;
+use crate::utils::dataframe::get_df_orders;
 use crate::utils::debug::log_debug;
 
 /*
@@ -48,12 +48,8 @@ async fn sqlx_query(db: &Pool<sqlx::Postgres>) -> AppResult<Vec<orders::Model>> 
 
 pub async fn display_table() -> AppResult<()> {
     let (db_sea_orm, db_sqlx) = get_database().await?;
-    let df = df_orders(&db_sea_orm)
-        .await?
-        .clone()
-        .lazy()
-        .collect()
-        .map_err(AppError::Polars)?;
+    let df_orders = get_df_orders(&db_sea_orm).await?.lazy();
+    let df = df_orders.collect().map_err(AppError::Polars)?;
 
     if compare_vecs(
         &sea_orm_query(&db_sea_orm).await?,

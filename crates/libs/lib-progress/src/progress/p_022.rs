@@ -1,4 +1,3 @@
-// use polars::lazy::dsl::*;
 use polars::prelude::*;
 use sea_orm::{ColumnTrait, DatabaseConnection, EntityTrait, QueryFilter};
 use sqlx::{Pool, Postgres};
@@ -6,9 +5,9 @@ use sqlx::{Pool, Postgres};
 use lib_core::error::{AppError, AppResult};
 use lib_data::database::customers;
 
-use crate::model::df_customers::df_customers;
 use crate::utils::compare::compare_vecs;
 use crate::utils::database::get_database;
+use crate::utils::dataframe::get_df_customers;
 use crate::utils::debug::log_debug;
 
 /*
@@ -66,9 +65,8 @@ async fn sqlx_query(db: &Pool<Postgres>) -> AppResult<Vec<customers::Model>> {
 pub async fn display_table() -> AppResult<()> {
     let (db_sea_orm, db_sqlx) = get_database().await?;
     let countries = Series::new("countries".into(), &["Germany", "USA"]);
-    let df = df_customers(&db_sea_orm)
-        .await?
-        .lazy()
+    let df_customers = get_df_customers(&db_sea_orm).await?.lazy();
+    let df = df_customers
         .filter(col("country").is_in(lit(countries), false))
         .collect()
         .map_err(AppError::Polars)?;

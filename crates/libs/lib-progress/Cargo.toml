@@ -9,9 +9,12 @@ lib-data = { path = "../lib-data" }
 
 chrono = "0.4.42"
 polars = { version = "0.51.0", features = [
-    "lazy",
     "dtype-categorical",
+    "lazy",
+    "cross_join",
     "is_in",
+    "strings",
+    "regex",
 ] }
 sea-orm = { version = "1.1.16", features = [
     "runtime-tokio-rustls",

@@ -15,17 +15,16 @@ use crate::utils::debug::log_debug;
 
 SELECT *
 FROM customers
-WHERE score > 500;
+WHERE country NOT IN ('Germany', 'USA');
 */
 
 /*
-shape: (2, 4)
+shape: (1, 4)
 ┌─────┬────────────┬─────────┬───────┐
 │ id  ┆ first_name ┆ country ┆ score │
 │ --- ┆ ---        ┆ ---     ┆ ---   │
 │ i32 ┆ str        ┆ str     ┆ i32   │
 ╞═════╪════════════╪═════════╪═══════╡
-│ 2   ┆  John      ┆ USA     ┆ 900   │
 │ 3   ┆ Georg      ┆ UK      ┆ 750   │
 └─────┴────────────┴─────────┴───────┘
 */
@@ -34,7 +33,7 @@ const DEBUG: bool = false;
 
 async fn sea_orm_query(db: &DatabaseConnection) -> AppResult<Vec<customers::Model>> {
     let results = customers::Entity::find()
-        .filter(customers::Column::Score.gt(500))
+        .filter(customers::Column::Country.is_not_in(vec!["Germany", "USA"]))
         .all(db)
         .await
         .map_err(AppError::SeaOrm)?;
@@ -48,7 +47,7 @@ async fn sqlx_query(db: &Pool<Postgres>) -> AppResult<Vec<customers::Model>> {
     let query = "
     SELECT *
     FROM customers
-    WHERE score > 500;
+    WHERE country NOT IN ('Germany', 'USA');
     ";
     let results = sqlx::query_as::<_, customers::Model>(query)
         .fetch_all(db)
@@ -62,9 +61,10 @@ async fn sqlx_query(db: &Pool<Postgres>) -> AppResult<Vec<customers::Model>> {
 
 pub async fn display_table() -> AppResult<()> {
     let (db_sea_orm, db_sqlx) = get_database().await?;
+    let countries = Series::new("countries".into(), &["Germany", "USA"]);
     let df_customers = get_df_customers(&db_sea_orm).await?.lazy();
     let df = df_customers
-        .filter(col("score").gt(500))
+        .filter(col("country").is_in(lit(countries), false).not())
         .collect()
         .map_err(AppError::Polars)?;
 

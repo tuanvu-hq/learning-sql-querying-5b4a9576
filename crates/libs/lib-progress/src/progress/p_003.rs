@@ -6,7 +6,7 @@ use sqlx::{Pool, Postgres};
 use lib_core::error::{AppError, AppResult};
 use lib_data::database::customers;
 
-use crate::model::df_customers::df_customers;
+use crate::utils::dataframe::get_df_customers;
 use crate::utils::compare::compare_vecs;
 use crate::utils::database::get_database;
 use crate::utils::debug::log_debug;
@@ -75,9 +75,8 @@ async fn sqlx_query(db: &Pool<Postgres>) -> AppResult<Vec<Customer>> {
 
 pub async fn display_table() -> AppResult<()> {
     let (db_sea_orm, db_sqlx) = get_database().await?;
-    let df = df_customers(&db_sea_orm)
-        .await?
-        .lazy()
+    let df_customers = get_df_customers(&db_sea_orm).await?.lazy();
+    let df = df_customers
         .select(&[col("first_name"), col("country"), col("score")])
         .collect()
         .map_err(AppError::Polars)?;
