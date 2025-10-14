@@ -19,13 +19,16 @@ cargo new crates/libs/lib-progress --lib --vcs none
 ```bash
 sea-orm-cli generate entity -o src/database
 
-sea-orm-cli generate entity -o crates/libs/lib-data/database
+sea-orm-cli generate entity -o crates/libs/lib-data/src/database
+
+sea-orm-cli generate entity -s sales -o crates/libs/lib-data/src/database-sales
 ```
 
 ### Docker
 
 ```bash
 docker-compose exec database psql -U postgres -d MyDatabase
+docker-compose exec database psql -U postgres -d salesdb
 ```
 
 ## Note

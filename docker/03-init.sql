@@ -50,7 +50,8 @@ CREATE TABLE sales.employees (
     birthdate DATE,
     gender CHAR(1),
     salary INT,
-    managerid INT
+    managerid INT,
+    CONSTRAINT fk_manager FOREIGN KEY (managerid) REFERENCES sales.employees(employeeid)
 );
 
 INSERT INTO sales.employees VALUES
@@ -94,7 +95,10 @@ CREATE TABLE sales.orders (
     billaddress VARCHAR(255),
     quantity INT,
     sales INT,
-    creationtime TIMESTAMP
+    creationtime TIMESTAMP,
+    CONSTRAINT fk_product FOREIGN KEY (productid) REFERENCES sales.products(productid),
+    CONSTRAINT fk_customer FOREIGN KEY (customerid) REFERENCES sales.customers(customerid),
+    CONSTRAINT fk_salesperson FOREIGN KEY (salespersonid) REFERENCES sales.employees(employeeid)
 );
 
 INSERT INTO sales.orders VALUES
@@ -126,7 +130,10 @@ CREATE TABLE sales.ordersarchive (
     billaddress VARCHAR(255),
     quantity INT,
     sales INT,
-    creationtime TIMESTAMP
+    creationtime TIMESTAMP,
+    CONSTRAINT fk_product_archive FOREIGN KEY (productid) REFERENCES sales.products(productid),
+    CONSTRAINT fk_customer_archive FOREIGN KEY (customerid) REFERENCES sales.customers(customerid),
+    CONSTRAINT fk_salesperson_archive FOREIGN KEY (salespersonid) REFERENCES sales.employees(employeeid)
 );
 
 INSERT INTO sales.ordersarchive (archiveid, orderid, productid, customerid, salespersonid, orderdate, shipdate, orderstatus, shipaddress, billaddress, quantity, sales, creationtime) VALUES
